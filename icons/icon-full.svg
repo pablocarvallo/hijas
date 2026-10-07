@@ -1,55 +1,75 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#2a2358"/>
-      <stop offset="1" stop-color="#14123a"/>
+      <stop offset="0" stop-color="#4a2a8a"/>
+      <stop offset="1" stop-color="#1d1147"/>
     </linearGradient>
-    <radialGradient id="glow" cx="42%" cy="40%" r="62%">
-      <stop offset="0" stop-color="#6c63d6" stop-opacity="0.6"/>
-      <stop offset="1" stop-color="#6c63d6" stop-opacity="0"/>
+    <radialGradient id="glow" cx="50%" cy="46%" r="58%">
+      <stop offset="0" stop-color="#9a6bf0" stop-opacity="0.65"/>
+      <stop offset="1" stop-color="#9a6bf0" stop-opacity="0"/>
     </radialGradient>
-    <linearGradient id="pink" x1="0.15" y1="0" x2="0.85" y2="1">
-      <stop offset="0" stop-color="#ff9fc2"/>
-      <stop offset="1" stop-color="#d9457f"/>
+    <linearGradient id="rim" x1="0.15" y1="0.05" x2="0.85" y2="0.95">
+      <stop offset="0" stop-color="#ffe588"/>
+      <stop offset="1" stop-color="#f2a11b"/>
     </linearGradient>
-    <linearGradient id="blue" x1="0.15" y1="0" x2="0.85" y2="1">
-      <stop offset="0" stop-color="#7fd0ff"/>
-      <stop offset="1" stop-color="#2585c9"/>
+    <linearGradient id="field" x1="0.2" y1="0" x2="0.8" y2="1">
+      <stop offset="0" stop-color="#fbc440"/>
+      <stop offset="1" stop-color="#f3a51f"/>
     </linearGradient>
+    <clipPath id="fieldclip"><circle cx="512" cy="500" r="306"/></clipPath>
+    <clipPath id="rr"><rect width="1024" height="1024" rx="232"/></clipPath>
   </defs>
 
   <rect width="1024" height="1024" fill="url(#bg)"/>
   <rect width="1024" height="1024" fill="url(#glow)"/>
 
-  <!-- sombra en el suelo -->
-  <ellipse cx="500" cy="892" rx="330" ry="26" fill="#07061c" opacity="0.5"/>
+  <!-- sombra y canto de la moneda -->
+  <ellipse cx="512" cy="918" rx="318" ry="24" fill="#0c0626" opacity="0.5"/>
+  <circle cx="512" cy="534" r="392" fill="#a85a08"/>
+  <circle cx="512" cy="517" r="392" fill="#c9750d"/>
 
-  <!-- moneda rosa (Emi), atrás -->
-  <g transform="translate(670 372)">
-    <circle cx="0" cy="22" r="214" fill="#8f2552"/>
-    <circle r="214" fill="url(#pink)"/>
-    <circle r="169" fill="none" stroke="#ffffff" stroke-opacity="0.34" stroke-width="12"/>
-    <path d="M -133 -90 A 163 163 0 0 1 -21 -160" fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="14" stroke-linecap="round"/>
-    <g transform="scale(0.856)" fill="none" stroke="#ffffff" stroke-width="36" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M 64 -50 C 50 -94 -72 -100 -72 -46 C -72 4 72 -6 72 48 C 72 100 -52 96 -68 52"/>
-      <path d="M 0 -132 V 132"/>
-    </g>
-  </g>
+  <!-- cara de la moneda -->
+  <circle cx="512" cy="500" r="392" fill="url(#rim)"/>
+  <g fill="#fff6d2" opacity="0.8"><circle cx="864.0" cy="500.0" r="9.5"/><circle cx="860.4" cy="550.1" r="9.5"/><circle cx="849.7" cy="599.2" r="9.5"/><circle cx="832.2" cy="646.2" r="9.5"/><circle cx="808.1" cy="690.3" r="9.5"/><circle cx="778.0" cy="730.5" r="9.5"/><circle cx="742.5" cy="766.0" r="9.5"/><circle cx="702.3" cy="796.1" r="9.5"/><circle cx="658.2" cy="820.2" r="9.5"/><circle cx="611.2" cy="837.7" r="9.5"/><circle cx="562.1" cy="848.4" r="9.5"/><circle cx="512.0" cy="852.0" r="9.5"/><circle cx="461.9" cy="848.4" r="9.5"/><circle cx="412.8" cy="837.7" r="9.5"/><circle cx="365.8" cy="820.2" r="9.5"/><circle cx="321.7" cy="796.1" r="9.5"/><circle cx="281.5" cy="766.0" r="9.5"/><circle cx="246.0" cy="730.5" r="9.5"/><circle cx="215.9" cy="690.3" r="9.5"/><circle cx="191.8" cy="646.2" r="9.5"/><circle cx="174.3" cy="599.2" r="9.5"/><circle cx="163.6" cy="550.1" r="9.5"/><circle cx="160.0" cy="500.0" r="9.5"/><circle cx="163.6" cy="449.9" r="9.5"/><circle cx="174.3" cy="400.8" r="9.5"/><circle cx="191.8" cy="353.8" r="9.5"/><circle cx="215.9" cy="309.7" r="9.5"/><circle cx="246.0" cy="269.5" r="9.5"/><circle cx="281.5" cy="234.0" r="9.5"/><circle cx="321.7" cy="203.9" r="9.5"/><circle cx="365.8" cy="179.8" r="9.5"/><circle cx="412.8" cy="162.3" r="9.5"/><circle cx="461.9" cy="151.6" r="9.5"/><circle cx="512.0" cy="148.0" r="9.5"/><circle cx="562.1" cy="151.6" r="9.5"/><circle cx="611.2" cy="162.3" r="9.5"/><circle cx="658.2" cy="179.8" r="9.5"/><circle cx="702.3" cy="203.9" r="9.5"/><circle cx="742.5" cy="234.0" r="9.5"/><circle cx="778.0" cy="269.5" r="9.5"/><circle cx="808.1" cy="309.7" r="9.5"/><circle cx="832.2" cy="353.8" r="9.5"/><circle cx="849.7" cy="400.8" r="9.5"/><circle cx="860.4" cy="449.9" r="9.5"/></g>
+  <circle cx="512" cy="500" r="312" fill="url(#field)" stroke="#d98a12" stroke-width="10"/>
 
-  <!-- moneda azul (Piti), adelante -->
-  <circle cx="400" cy="622" r="268" fill="#1b1846"/>
-  <g transform="translate(400 608)">
-    <circle cx="0" cy="26" r="250" fill="#155184"/>
-    <circle r="250" fill="url(#blue)"/>
-    <circle r="198" fill="none" stroke="#ffffff" stroke-opacity="0.34" stroke-width="14"/>
-    <path d="M -155 -105 A 190 190 0 0 1 -25 -188" fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="16" stroke-linecap="round"/>
-    <g transform="scale(1.000)" fill="none" stroke="#ffffff" stroke-width="36" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M 64 -50 C 50 -94 -72 -100 -72 -46 C -72 4 72 -6 72 48 C 72 100 -52 96 -68 52"/>
-      <path d="M 0 -132 V 132"/>
+  <!-- las dos niñas, en relieve -->
+  <g clip-path="url(#fieldclip)"><g transform="translate(512 500) scale(1.14) translate(-512 -562)">
+    <g>
+      <rect x="532" y="370" width="196" height="286" rx="96" fill="#b25f0d"/>
+      <ellipse cx="630" cy="710" rx="132" ry="118" fill="#d97511"/>
+      <rect x="606" y="528" width="48" height="82" rx="20" fill="#f6cc78"/>
+      <circle cx="630" cy="478" r="80" fill="#ffe9ad"/>
+      <path d="M 550 474 A 80 80 0 0 1 710 474 Q 690 438 654 428 Q 594 420 550 474 Z" fill="#b25f0d"/>
+      <path d="M 540 426 A 98 98 0 0 1 720 426" fill="none" stroke="#fff3cf" stroke-width="15" stroke-linecap="round"/>
+      <g fill="none" stroke="#b25f0d" stroke-width="9" stroke-linecap="round">
+        <path d="M 588 494 q 13 -15 26 0"/>
+        <path d="M 646 494 q 13 -15 26 0"/>
+        <path d="M 608 520 q 22 20 44 0"/>
+      </g>
     </g>
-  </g>
+    <g>
+      <ellipse cx="288" cy="554" rx="36" ry="48" fill="#a4530c"/>
+      <ellipse cx="508" cy="554" rx="36" ry="48" fill="#a4530c" stroke="#f6b12e" stroke-width="9" paint-order="stroke"/>
+      <circle cx="398" cy="506" r="92" fill="#a4530c"/>
+      <ellipse cx="398" cy="752" rx="132" ry="118" fill="#e07f14" stroke="#f6b12e" stroke-width="9" paint-order="stroke"/>
+      <rect x="374" y="570" width="48" height="82" rx="20" fill="#f6cc78"/>
+      <circle cx="398" cy="520" r="80" fill="#ffe9ad"/>
+      <path d="M 318 514 A 80 80 0 0 1 478 514 Q 446 468 398 474 Q 350 468 318 514 Z" fill="#a4530c"/>
+      <circle cx="314" cy="522" r="14" fill="#fff3cf"/>
+      <circle cx="482" cy="522" r="14" fill="#fff3cf"/>
+      <g fill="none" stroke="#a4530c" stroke-width="9" stroke-linecap="round">
+        <path d="M 356 536 q 13 -15 26 0"/>
+        <path d="M 414 536 q 13 -15 26 0"/>
+        <path d="M 376 562 q 22 20 44 0"/>
+      </g>
+    </g>
+  </g></g>
+
+  <!-- destellos -->
+  <path d="M 884 150 C 889 182 898 191 930 196 C 898 201 889 210 884 242 C 879 210 870 201 838 196 C 870 191 879 182 884 150 Z" fill="#ffffff" opacity="0.9"/>
+  <path d="M 122 792 C 125 812 131 818 151 821 C 131 824 125 830 122 850 C 119 830 113 824 93 821 C 113 818 119 812 122 792 Z" fill="#ffffff" opacity="0.65"/>
 
   <!-- brillo -->
-  <path d="M 250 196 C 256 236 268 248 308 254 C 268 260 256 272 250 312 C 244 272 232 260 192 254 C 232 248 244 236 250 196 Z" fill="#ffffff" opacity="0.9"/>
-  <path d="M 838 708 C 842 732 850 740 874 744 C 850 748 842 756 838 780 C 834 756 826 748 802 744 C 826 740 834 732 838 708 Z" fill="#ffffff" opacity="0.7"/>
+  <path d="M 212 304 A 358 358 0 0 1 362 174" fill="none" stroke="#ffffff" stroke-opacity="0.7" stroke-width="16" stroke-linecap="round"/>
 </svg>
