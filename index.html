@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mesadas</title>
+<!--STANDALONE:START-->
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mesadas">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#edf0f3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#11161c" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+@font-face{font-family:"Bricolage Grotesque";font-style:normal;font-weight:200 800;font-display:swap;src:url(fonts/bricolage-grotesque.woff2) format("woff2")}
+@font-face{font-family:"Figtree";font-style:normal;font-weight:300 900;font-display:swap;src:url(fonts/figtree.woff2) format("woff2")}
+</style>
+<!--STANDALONE:END-->
+<style>
+/* Concepto: arriba el total de cada hija, lado a lado; debajo el formulario para anotar
+   un aporte (monto, para quién, asunto) y luego el historial por mes.
+   Azul para Piti y rosa para Emi, igual que en la app de sábanas. */
+:root {
+  --bg: #edf0f3;
+  --surface: #ffffff;
+  --ink: #1a2330;
+  --muted: #5a6573;
+  --line: #d9dfe6;
+  --track: #e3e8ee;
+  --piti: #25688f;
+  --piti-bg: #e1eef6;
+  --emi: #a3426a;
+  --emi-bg: #f6e5ed;
+  --on-person: #ffffff;
+  --over: #b42318;
+  --over-bg: #fdecea;
+  --scrim: rgba(12, 18, 26, 0.5);
+  --font-display: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161c;
+    --surface: #1a222b;
+    --ink: #e8edf2;
+    --muted: #9aa6b3;
+    --line: #2b3541;
+    --track: #26313c;
+    --piti: #7bbbe0;
+    --piti-bg: #1b2f3d;
+    --emi: #eb97b9;
+    --emi-bg: #3a2230;
+    --on-person: #0f1a22;
+    --over: #ff9b92;
+    --over-bg: #3b1f1d;
+    --scrim: rgba(0, 0, 0, 0.62);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161c;
+  --surface: #1a222b;
+  --ink: #e8edf2;
+  --muted: #9aa6b3;
+  --line: #2b3541;
+  --track: #26313c;
+  --piti: #7bbbe0;
+  --piti-bg: #1b2f3d;
+  --emi: #eb97b9;
+  --emi-bg: #3a2230;
+  --on-person: #0f1a22;
+  --over: #ff9b92;
+  --over-bg: #3b1f1d;
+  --scrim: rgba(0, 0, 0, 0.62);
+  color-scheme: dark;
+}
+html { -webkit-tap-highlight-color: transparent; }
+html.lock { overflow: hidden; }
+[hidden]:not([hidden=until-found i]) { display: none !important; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.4;
+  padding-inline: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+.app { max-width: 480px; margin: 0 auto; padding-block: 20px 40px; display: flex; flex-direction: column; gap: 16px; }
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+h1, h2, h3 { margin: 0; font-family: var(--font-display); letter-spacing: -0.01em; text-wrap: balance; }
+.eyebrow { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.muted { color: var(--muted); margin: 0; }
+svg { display: block; }
+
+/* Colores por persona */
+.piti { --who: var(--piti); --who-bg: var(--piti-bg); }
+.emi { --who: var(--emi); --who-bg: var(--emi-bg); }
+.person { display: inline-flex; align-items: center; min-height: 24px; padding: 0 10px; border-radius: 999px; background: var(--who-bg); color: var(--who); font-weight: 600; font-size: 13px; }
+
+/* Encabezado */
+.top { display: flex; align-items: center; gap: 12px; }
+.mark { width: 44px; height: 44px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); display: grid; place-items: center; flex: none; }
+.top h1 { font-size: 28px; font-weight: 700; line-height: 1.1; }
+
+/* Totales */
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--who); border-radius: 18px; padding: 12px 14px 14px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; }
+.tile .person { font-size: 14px; min-height: 26px; padding: 0 12px; }
+.big { font-family: var(--font-display); font-weight: 700; font-size: 34px; line-height: 1.05; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; color: var(--ink); max-width: 100%; overflow-wrap: anywhere; }
+.big.s2 { font-size: 27px; }
+.big.s3 { font-size: 22px; }
+.tile .sub { font-size: 13px; color: var(--muted); }
+.tile.bump { animation: bump 0.9s ease-out; }
+@keyframes bump { 0% { background: var(--who-bg); transform: scale(1.03); } 100% { background: var(--surface); transform: none; } }
+.grand { margin: 10px 4px 0; font-size: 14px; color: var(--muted); }
+.grand strong { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* Aviso del último aporte */
+.result { margin: 0; padding: 12px 14px; border-radius: 14px; background: var(--who-bg); color: var(--ink); font-size: 15px; }
+.result strong { font-weight: 600; font-variant-numeric: tabular-nums; }
+.result .new { display: block; margin-top: 2px; color: var(--who); font-weight: 600; }
+
+/* Botones */
+.btn {
+  min-height: 52px; padding: 0 20px; border-radius: 14px; border: 1.5px solid transparent;
+  font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn:active { opacity: 0.85; }
+.btn.primary { background: var(--accent, var(--ink)); color: var(--on-accent, var(--bg)); }
+.btn.ghost { background: transparent; border-color: var(--line); color: var(--ink); }
+.btn.danger { background: transparent; border-color: var(--over); color: var(--over); }
+.btn.danger.armed { background: var(--over); color: var(--bg); }
+.btn.block { width: 100%; }
+
+/* Formulario */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.card h2 { font-size: 22px; }
+.sel-piti { --accent: var(--piti); --on-accent: var(--on-person); }
+.sel-emi { --accent: var(--emi); --on-accent: var(--on-person); }
+.field { display: flex; flex-direction: column; gap: 6px; border: 0; padding: 0; margin: 0; min-width: 0; }
+.field > span, .field > legend { font-size: 14px; font-weight: 600; padding: 0; }
+.field input[type="date"], .field input[type="text"] {
+  display: block; width: 100%; min-width: 0; min-height: 52px; box-sizing: border-box;
+  -webkit-appearance: none; appearance: none; font-size: 16px;
+  border: 1.5px solid var(--line); border-radius: 12px; padding: 0 14px; background: var(--bg); color: var(--ink);
+}
+.field input::placeholder { color: var(--muted); opacity: 0.75; }
+.amount-wrap { position: relative; }
+.amount-wrap b { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-family: var(--font-display); font-size: 26px; font-weight: 700; color: var(--muted); pointer-events: none; }
+.amount-wrap input[type="text"] { min-height: 64px; padding-left: 40px; font-family: var(--font-display); font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.who { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.who input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.who label {
+  min-height: 56px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--bg); color: var(--who);
+  display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 20px; font-weight: 700; cursor: pointer;
+}
+.who input:checked + label { background: var(--who); border-color: var(--who); color: var(--on-person); }
+.who input:focus-visible + label { outline: 3px solid var(--ink); outline-offset: 2px; }
+.sugs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: -6px; }
+.sug { min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1.5px solid var(--line); background: transparent; font-size: 15px; font-weight: 500; }
+.sug:active { background: var(--track); }
+.field.inline { flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; }
+.field.inline input[type="date"] { width: auto; flex: 0 1 190px; min-height: 48px; }
+.err { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--over-bg); color: var(--over); font-weight: 600; font-size: 15px; }
+
+/* Historial */
+.sec-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.sec-head h2 { font-size: 22px; }
+.filter { display: flex; gap: 6px; }
+.fchip { min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1.5px solid var(--line); background: transparent; font-size: 14px; font-weight: 600; color: var(--muted); }
+.fchip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.hist { display: flex; flex-direction: column; gap: 10px; }
+.month { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 8px 4px 0; font-family: var(--font-body); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.month span { font-variant-numeric: tabular-nums; letter-spacing: 0; color: var(--ink); font-size: 14px; }
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.row {
+  width: 100%; text-align: left; display: grid; grid-template-columns: minmax(0, 1fr) auto 18px; align-items: center; gap: 10px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 12px 12px 12px 14px; min-height: 64px;
+}
+.row:active { background: var(--track); }
+.info { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.subj { font-weight: 600; overflow-wrap: anywhere; }
+.meta { font-size: 14px; color: var(--muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.amt { text-align: right; line-height: 1.1; }
+.amt b { display: block; font-family: var(--font-display); font-weight: 700; font-size: 20px; font-variant-numeric: tabular-nums; }
+.amt span { display: block; margin-top: 4px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.row > svg { color: var(--muted); }
+.empty { margin: 0; padding: 16px; border: 1.5px dashed var(--line); border-radius: 16px; color: var(--muted); }
+
+/* Respaldo */
+.backup { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 4px 16px; }
+.backup summary { min-height: 48px; display: flex; align-items: center; font-weight: 600; cursor: pointer; }
+.backup[open] { padding-bottom: 16px; }
+.backup > *:not(summary) { margin-top: 10px; }
+.backup textarea { width: 100%; box-sizing: border-box; border: 1.5px solid var(--line); border-radius: 12px; background: var(--bg); padding: 10px 12px; font-size: 14px; font-family: ui-monospace, Menlo, monospace; resize: vertical; }
+.bk-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.bk-actions .btn { flex: 1; min-width: 0; min-height: 48px; padding: 0 12px; font-size: 15px; }
+
+/* Hoja para editar */
+.sheet { position: fixed; inset: 0; z-index: 10; display: flex; align-items: flex-end; justify-content: center; }
+.backdrop { position: absolute; inset: 0; background: var(--scrim); }
+.panel {
+  position: relative; width: 100%; max-width: 480px; max-height: 92%; overflow-y: auto; overscroll-behavior: contain;
+  background: var(--surface); border-radius: 24px 24px 0 0; box-sizing: border-box;
+  padding: 22px 16px calc(22px + env(safe-area-inset-bottom, 0px));
+  display: flex; flex-direction: column; gap: 14px; animation: rise 0.2s ease-out;
+}
+.panel:focus { outline: none; }
+.panel h2 { font-size: 24px; }
+.stack { display: flex; flex-direction: column; gap: 10px; }
+@keyframes rise { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .panel, .tile.bump { animation: none; } }
+
+.toast {
+  position: fixed; left: 16px; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); max-width: 448px; margin: 0 auto; z-index: 20;
+  background: var(--ink); color: var(--bg); padding: 12px 16px; border-radius: 14px; font-size: 15px; text-align: center;
+}
+</style>
+</head>
+<body>
+
+<main class="app">
+  <header class="top">
+    <span class="mark" aria-hidden="true">
+      <svg viewBox="0 0 32 32" width="30" height="30">
+        <circle cx="20.5" cy="12" r="9" style="fill:var(--emi)"/>
+        <circle cx="12" cy="19.5" r="10" style="fill:var(--piti);stroke:var(--surface);stroke-width:2"/>
+        <path d="M14.9 16.9c-.5-1.5-5.6-1.8-5.6.6 0 2.3 5.6 1.5 5.6 4 0 2.4-4.9 2.2-5.6.5M12 13.6v11.8" style="fill:none;stroke:var(--on-person);stroke-width:1.8;stroke-linecap:round"/>
+      </svg>
+    </span>
+    <div><div class="eyebrow">Piti y Emi</div><h1>Mesadas</h1></div>
+  </header>
+
+  <section id="totals" aria-label="Totales" aria-live="polite"></section>
+
+  <p class="result" id="result" role="status" hidden></p>
+
+  <form class="card" id="new-form" novalidate aria-labelledby="new-title">
+    <h2 id="new-title">Nuevo aporte</h2>
+    <label class="field"><span>Monto</span>
+      <div class="amount-wrap"><b>$</b><input type="text" id="f-amount" inputmode="numeric" autocomplete="off" placeholder="0" enterkeyhint="next"></div>
+    </label>
+    <fieldset class="field"><legend>Para</legend>
+      <div class="who">
+        <input type="radio" name="f-who" id="f-who-piti" value="piti"><label for="f-who-piti" class="piti">Piti</label>
+        <input type="radio" name="f-who" id="f-who-emi" value="emi"><label for="f-who-emi" class="emi">Emi</label>
+      </div>
+    </fieldset>
+    <label class="field"><span>Asunto</span>
+      <input type="text" id="f-subject" maxlength="40" autocomplete="off" autocapitalize="sentences" placeholder="Ej. almuerzo" enterkeyhint="done">
+    </label>
+    <div class="sugs" id="f-sugs" aria-label="Asuntos frecuentes"></div>
+    <label class="field inline"><span>Fecha</span><input type="date" id="f-date"></label>
+    <p class="err" id="f-err" role="alert" hidden></p>
+    <button type="submit" class="btn primary block" id="f-submit">Registrar aporte</button>
+  </form>
+
+  <section id="history" aria-label="Historial"></section>
+  <div id="backup"></div>
+</main>
+<div class="sheet" id="sheet" hidden></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  var MES_L = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+  var LS_KEY = 'mesadas-aportes';
+  var PEOPLE = { piti: 'Piti', emi: 'Emi' };
+  var ORDER = ['piti', 'emi'];
+  var DEFAULT_SUGS = ['Almuerzo', 'Ropa', 'Helados'];
+  var DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+  var PAGE = 40;
+
+  var I_CHEV = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var totalsEl = $('totals'), resultEl = $('result'), formEl = $('new-form'), historyEl = $('history');
+  var backupEl = $('backup'), sheetEl = $('sheet'), toastEl = $('toast');
+
+  var items = [];
+  var loading = !!(window.claude && window.claude.use);
+  var mode = 'local';
+  var db = null;
+  var sheet = null;
+  var busy = false;
+  var restoreArmed = false;
+  var filter = 'all';
+  var shown = PAGE;
+  var bumpWho = null;
+  var lastToday = '';
+
+  /* ---------- Fechas y formatos ---------- */
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function todayKey() { var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function fmtDay(k) { var p = k.split('-'); return (+p[2]) + ' ' + MES[+p[1] - 1]; }
+  function monthLabel(k) { return MES_L[+k.slice(5, 7) - 1] + ' ' + k.slice(0, 4); }
+  function dots(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+  function money(n) { return '$' + dots(Math.round(n)); }
+  function plural(n, s, p) { return n === 1 ? s : p; }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function genId() { return 'a' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function cleanSubject(s) {
+    s = String(s == null ? '' : s).replace(/\s+/g, ' ').trim().slice(0, 40);
+    return s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+  }
+  function parseAmount(s) { var d = String(s).replace(/\D/g, '').slice(0, 9); return d ? parseInt(d, 10) : 0; }
+
+  /* ---------- Datos ---------- */
+  function norm(r) {
+    if (!r || !PEOPLE[r.who] || !DATE_RE.test(String(r.date))) return null;
+    var amount = Math.round(+r.amount);
+    if (!(amount > 0) || amount > 999999999) return null;
+    var id = String(r.id || '').replace(/[^\w-]/g, '') || genId();
+    return { id: id, who: r.who, amount: amount, subject: cleanSubject(r.subject), date: String(r.date), ts: +r.ts > 0 ? +r.ts : 0 };
+  }
+  function toDoc(r) { return { who: r.who, amount: r.amount, subject: r.subject, date: r.date, ts: r.ts }; }
+  // Orden cronológico: fecha, luego momento de registro.
+  function chrono(a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : a.ts !== b.ts ? a.ts - b.ts : (a.id < b.id ? -1 : 1); }
+  function sortItems() { items.sort(function (a, b) { return chrono(b, a); }); }
+  function find(id) { for (var i = 0; i < items.length; i++) if (items[i].id === id) return items[i]; return null; }
+
+  function loadLocal() {
+    var list = [];
+    try {
+      var raw = localStorage.getItem(LS_KEY);
+      if (raw) JSON.parse(raw).forEach(function (r) { var n = norm(r); if (n) list.push(n); });
+    } catch (e) {}
+    items = list; sortItems();
+  }
+  function saveLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify(items)); return true; } catch (e) { return false; } }
+
+  async function commit(ups, rems) {
+    rems = rems || [];
+    var next = items.filter(function (r) { return rems.indexOf(r.id) < 0 && !ups.some(function (u) { return u.id === r.id; }); }).concat(ups);
+    if (mode === 'db' && db) {
+      try {
+        for (var i = 0; i < ups.length; i++) await db.collection('aportes').doc(ups[i].id).set(toDoc(ups[i]));
+        for (var j = 0; j < rems.length; j++) await db.collection('aportes').doc(rems[j]).delete();
+      } catch (e) { toast('No se pudo guardar. Intenta de nuevo.'); return false; }
+    }
+    var prev = items;
+    items = next; sortItems();
+    if (mode !== 'db' && !saveLocal()) { items = prev; toast('No se pudo guardar en este dispositivo.'); return false; }
+    render();
+    return true;
+  }
+
+  function toast(msg) {
+    toastEl.textContent = msg; toastEl.hidden = false;
+    clearTimeout(toast.t); toast.t = setTimeout(function () { toastEl.hidden = true; }, 3200);
+  }
+
+  /* ---------- Cálculos ---------- */
+  function totals() {
+    var month = todayKey().slice(0, 7);
+    var t = { all: 0 };
+    ORDER.forEach(function (w) { t[w] = { total: 0, n: 0, month: 0 }; });
+    items.forEach(function (r) {
+      t[r.who].total += r.amount; t[r.who].n += 1; t.all += r.amount;
+      if (r.date.slice(0, 7) === month) t[r.who].month += r.amount;
+    });
+    return t;
+  }
+  // Total acumulado de cada persona después de cada aporte.
+  function running() {
+    var acc = {}, map = {};
+    items.slice().sort(chrono).forEach(function (r) { acc[r.who] = (acc[r.who] || 0) + r.amount; map[r.id] = acc[r.who]; });
+    return map;
+  }
+  function suggestions() {
+    var seen = {}, list = [];
+    items.forEach(function (r, i) {
+      if (!r.subject) return;
+      var k = r.subject.toLowerCase();
+      if (!seen[k]) { seen[k] = { label: r.subject, n: 0, first: i }; list.push(seen[k]); }
+      seen[k].n += 1;
+    });
+    list.sort(function (a, b) { return b.n - a.n || a.first - b.first; });
+    var out = list.slice(0, 5).map(function (s) { return s.label; });
+    DEFAULT_SUGS.forEach(function (d) { if (out.length < 3 && !seen[d.toLowerCase()]) out.push(d); });
+    return out;
+  }
+
+  /* ---------- Vistas ---------- */
+  function sizeClass(txt) { return txt.length >= 10 ? ' s3' : txt.length >= 8 ? ' s2' : ''; }
+
+  function renderTotals() {
+    var t = totals();
+    var h = '<div class="tiles">';
+    ORDER.forEach(function (w) {
+      var txt = loading ? '—' : money(t[w].total);
+      var sub = loading ? 'Buscando tus registros…' : (t[w].n ? 'Este mes ' + money(t[w].month) + '<br>' + t[w].n + ' ' + plural(t[w].n, 'aporte', 'aportes') + ' en total' : 'Sin aportes aún');
+      h += '<div class="tile ' + w + (bumpWho === w ? ' bump' : '') + '"><span class="person">' + PEOPLE[w] + '</span>' +
+        '<div class="big' + sizeClass(txt) + '" aria-label="Total ' + PEOPLE[w] + ': ' + txt + '">' + txt + '</div><div class="sub">' + sub + '</div></div>';
+    });
+    h += '</div>';
+    if (!loading) h += '<p class="grand">Total entregado a las dos: <strong>' + money(t.all) + '</strong></p>';
+    totalsEl.innerHTML = h;
+    bumpWho = null;
+  }
+
+  function renderSugs() {
+    $('f-sugs').innerHTML = suggestions().map(function (s) { return '<button type="button" class="sug" data-sug="' + esc(s) + '">' + esc(s) + '</button>'; }).join('');
+  }
+
+  function renderHistory() {
+    var h = '<div class="hist"><div class="sec-head"><h2>Historial</h2><div class="filter" role="group" aria-label="Filtrar historial">';
+    [['all', 'Todos'], ['piti', 'Piti'], ['emi', 'Emi']].forEach(function (f) {
+      h += '<button type="button" class="fchip" data-filter="' + f[0] + '" aria-pressed="' + (filter === f[0]) + '">' + f[1] + '</button>';
+    });
+    h += '</div></div>';
+    var list = filter === 'all' ? items : items.filter(function (r) { return r.who === filter; });
+    if (loading) {
+      h += '<p class="empty">Buscando tus registros…</p>';
+    } else if (!list.length) {
+      h += '<p class="empty">' + (items.length ? 'No hay aportes para ' + PEOPLE[filter] + '.' : 'Aún no hay aportes. Cada monto que registres aparecerá aquí con su asunto y el total acumulado.') + '</p>';
+    } else {
+      var run = running(), sums = {};
+      list.forEach(function (r) { var m = r.date.slice(0, 7); sums[m] = (sums[m] || 0) + r.amount; });
+      var cur = '', open = false;
+      list.slice(0, shown).forEach(function (r) {
+        var m = r.date.slice(0, 7);
+        if (m !== cur) {
+          if (open) h += '</ul>';
+          h += '<h3 class="month">' + monthLabel(r.date) + '<span>' + money(sums[m]) + '</span></h3><ul class="list">';
+          cur = m; open = true;
+        }
+        var name = PEOPLE[r.who], subj = r.subject || 'Sin asunto';
+        h += '<li><button type="button" class="row" data-edit="' + r.id + '" aria-label="Editar aporte: ' + money(r.amount) + ' para ' + name + ', ' + esc(subj) + ', ' + fmtDay(r.date) + '">' +
+          '<div class="info"><span class="subj">' + esc(subj) + '</span><span class="meta"><span class="person ' + r.who + '">' + name + '</span>' + fmtDay(r.date) + '</span></div>' +
+          '<div class="amt"><b>' + money(r.amount) + '</b><span>Total ' + money(run[r.id]) + '</span></div>' + I_CHEV + '</button></li>';
+      });
+      if (open) h += '</ul>';
+      if (list.length > shown) h += '<button type="button" class="btn ghost block" data-more="1">Ver aportes anteriores</button>';
+    }
+    historyEl.innerHTML = h + '</div>';
+  }
+
+  function renderBackup() {
+    if (window.claude || backupEl.firstChild) return;
+    backupEl.innerHTML = '<details class="backup"><summary>Respaldo de datos</summary>' +
+      '<p class="muted">Los aportes se guardan solo en este dispositivo. Copia un respaldo para guardarlo en Notas o llevarlo a otro equipo.</p>' +
+      '<textarea id="bk-text" rows="4" spellcheck="false" aria-label="Texto del respaldo"></textarea>' +
+      '<div class="bk-actions"><button type="button" class="btn ghost" data-bk="copy">Copiar respaldo</button><button type="button" class="btn ghost" data-bk="restore">Restaurar desde el texto</button></div></details>';
+  }
+
+  function render() { renderTotals(); renderSugs(); renderHistory(); renderBackup(); }
+
+  /* ---------- Campos compartidos por el formulario y la hoja ---------- */
+  function onAmountInput(ev) {
+    var el = ev.target;
+    if (!el || !el.classList || !el.classList.contains('js-amount')) return;
+    var n = parseAmount(el.value);
+    el.value = n ? dots(n) : '';
+  }
+  function readFields(p, root) {
+    var whoEl = root.querySelector('input[name="' + p + '-who"]:checked');
+    return { amount: parseAmount($(p + '-amount').value), who: whoEl ? whoEl.value : '', subject: cleanSubject($(p + '-subject').value), date: $(p + '-date').value };
+  }
+  function check(f) {
+    if (!f.amount) return 'Escribe el monto, por ejemplo 10.000.';
+    if (!PEOPLE[f.who]) return 'Elige si el monto es para Piti o para Emi.';
+    if (!f.subject) return 'Escribe el asunto, por ejemplo almuerzo.';
+    if (!DATE_RE.test(f.date)) return 'Indica la fecha.';
+    if (f.date > todayKey()) return 'La fecha no puede ser futura.';
+    return '';
+  }
+  function setErr(id, msg) { var e = $(id); if (e) { e.textContent = msg; e.hidden = !msg; } }
+
+  /* ---------- Nuevo aporte ---------- */
+  $('f-amount').classList.add('js-amount');
+  document.addEventListener('input', onAmountInput);
+
+  function syncAccent() {
+    var w = formEl.querySelector('input[name="f-who"]:checked');
+    formEl.classList.toggle('sel-piti', !!w && w.value === 'piti');
+    formEl.classList.toggle('sel-emi', !!w && w.value === 'emi');
+  }
+  formEl.addEventListener('change', function (ev) { if (ev.target.name === 'f-who') syncAccent(); });
+  formEl.addEventListener('input', function () { setErr('f-err', ''); });
+  formEl.addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-sug]');
+    if (!b) return;
+    $('f-subject').value = b.getAttribute('data-sug');
+    setErr('f-err', '');
+  });
+
+  function resetForm() {
+    formEl.reset();
+    lastToday = todayKey();
+    $('f-date').value = lastToday; $('f-date').max = lastToday;
+    syncAccent(); setErr('f-err', '');
+  }
+
+  formEl.addEventListener('submit', async function (ev) {
+    ev.preventDefault();
+    if (busy || loading) return;
+    var f = readFields('f', formEl), msg = check(f);
+    if (msg) { setErr('f-err', msg); return; }
+    var rec = { id: genId(), who: f.who, amount: f.amount, subject: f.subject, date: f.date, ts: Date.now() };
+    busy = true; bumpWho = f.who;
+    var ok = await commit([rec], []);
+    busy = false;
+    if (!ok) { bumpWho = null; return; }
+    var name = PEOPLE[f.who];
+    resultEl.className = 'result ' + f.who;
+    resultEl.innerHTML = 'Registrado: <strong>' + money(f.amount) + '</strong> para ' + name + ' · ' + esc(f.subject) +
+      '<span class="new">Nuevo total ' + name + ': ' + money(totals()[f.who].total) + '</span>';
+    resultEl.hidden = false;
+    resetForm();
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
+  });
+
+  /* ---------- Historial ---------- */
+  historyEl.addEventListener('click', function (ev) {
+    var b = ev.target.closest('button');
+    if (!b) return;
+    if (b.hasAttribute('data-filter')) { filter = b.getAttribute('data-filter'); shown = PAGE; renderHistory(); }
+    else if (b.hasAttribute('data-more')) { shown += PAGE; renderHistory(); }
+    else if (b.hasAttribute('data-edit')) openSheet(b.getAttribute('data-edit'));
+  });
+
+  /* ---------- Hoja para editar o eliminar ---------- */
+  function openSheet(id) {
+    var r = find(id);
+    if (!r) return;
+    sheet = { id: id, del: false };
+    var today = todayKey();
+    var who = '';
+    ORDER.forEach(function (w) {
+      who += '<input type="radio" name="e-who" id="e-who-' + w + '" value="' + w + '"' + (r.who === w ? ' checked' : '') + '><label for="e-who-' + w + '" class="' + w + '">' + PEOPLE[w] + '</label>';
+    });
+    sheetEl.innerHTML = '<div class="backdrop" data-act="cancel"></div>' +
+      '<form class="panel sel-' + r.who + '" id="sheet-form" novalidate role="dialog" aria-modal="true" aria-labelledby="sheet-title" tabindex="-1">' +
+      '<h2 id="sheet-title">Editar aporte</h2>' +
+      '<label class="field"><span>Monto</span><div class="amount-wrap"><b>$</b><input type="text" id="e-amount" class="js-amount" inputmode="numeric" autocomplete="off" value="' + dots(r.amount) + '"></div></label>' +
+      '<fieldset class="field"><legend>Para</legend><div class="who">' + who + '</div></fieldset>' +
+      '<label class="field"><span>Asunto</span><input type="text" id="e-subject" maxlength="40" autocomplete="off" autocapitalize="sentences" value="' + esc(r.subject) + '"></label>' +
+      '<label class="field inline"><span>Fecha</span><input type="date" id="e-date" value="' + r.date + '" max="' + today + '"></label>' +
+      '<p class="err" id="e-err" role="alert" hidden></p>' +
+      '<div class="stack"><button type="submit" class="btn primary block">Guardar cambios</button>' +
+      '<button type="button" class="btn danger block" data-act="delete">Eliminar aporte</button>' +
+      '<button type="button" class="btn ghost block" data-act="cancel">Cancelar</button></div></form>';
+    sheetEl.hidden = false;
+    document.documentElement.classList.add('lock');
+    $('sheet-form').focus();
+  }
+  function closeSheet() {
+    sheet = null; sheetEl.hidden = true; sheetEl.innerHTML = '';
+    document.documentElement.classList.remove('lock');
+  }
+
+  sheetEl.addEventListener('change', function (ev) {
+    if (ev.target.name !== 'e-who') return;
+    var p = $('sheet-form');
+    p.classList.toggle('sel-piti', ev.target.value === 'piti');
+    p.classList.toggle('sel-emi', ev.target.value === 'emi');
+  });
+
+  sheetEl.addEventListener('click', async function (ev) {
+    var b = ev.target.closest('[data-act]');
+    if (!b || !sheet) return;
+    var a = b.getAttribute('data-act');
+    if (a === 'cancel') { closeSheet(); return; }
+    if (a === 'delete') {
+      var r = find(sheet.id);
+      if (!r) { closeSheet(); return; }
+      if (!sheet.del) { sheet.del = true; b.textContent = 'Toca de nuevo para eliminar'; b.classList.add('armed'); return; }
+      if (busy) return; busy = true;
+      var ok = await commit([], [r.id]); busy = false;
+      if (ok) { closeSheet(); resultEl.hidden = true; toast('Aporte eliminado. Total ' + PEOPLE[r.who] + ': ' + money(totals()[r.who].total)); }
+    }
+  });
+
+  sheetEl.addEventListener('submit', async function (ev) {
+    ev.preventDefault();
+    if (!sheet || busy) return;
+    var r = find(sheet.id);
+    if (!r) { closeSheet(); return; }
+    var f = readFields('e', sheetEl), msg = check(f);
+    if (msg) { setErr('e-err', msg); return; }
+    busy = true; bumpWho = f.who;
+    var ok = await commit([{ id: r.id, who: f.who, amount: f.amount, subject: f.subject, date: f.date, ts: r.ts }], []);
+    busy = false;
+    if (!ok) { bumpWho = null; return; }
+    closeSheet(); resultEl.hidden = true;
+    toast('Cambios guardados. Total ' + PEOPLE[f.who] + ': ' + money(totals()[f.who].total));
+  });
+
+  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && sheet) closeSheet(); });
+
+  /* ---------- Respaldo ---------- */
+  backupEl.addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-bk]');
+    if (!b) return;
+    var ta = $('bk-text');
+    if (b.getAttribute('data-bk') === 'copy') {
+      var json = JSON.stringify(items.slice().sort(chrono));
+      ta.value = json;
+      var manual = function () { ta.focus(); ta.select(); toast('Selecciona el texto y cópialo'); };
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(json).then(function () { toast('Respaldo copiado'); }, manual);
+        else manual();
+      } catch (e) { manual(); }
+      return;
+    }
+    var list = [];
+    try {
+      var data = JSON.parse(ta.value);
+      if (!Array.isArray(data)) throw new Error('formato');
+      data.forEach(function (r) { var n = norm(r); if (n) list.push(n); });
+    } catch (e) { toast('El texto no es un respaldo válido'); return; }
+    if (!list.length) { toast('El respaldo no tiene aportes válidos'); return; }
+    if (items.length && !restoreArmed) {
+      restoreArmed = true; b.textContent = 'Toca de nuevo para reemplazar';
+      toast('Esto reemplaza los aportes de este dispositivo');
+      return;
+    }
+    restoreArmed = false; b.textContent = 'Restaurar desde el texto';
+    items = list; sortItems(); saveLocal(); resultEl.hidden = true; render();
+    toast('Respaldo restaurado');
+  });
+
+  /* ---------- Arranque ---------- */
+  function fallback() { mode = 'local'; db = null; loading = false; loadLocal(); render(); }
+
+  async function connect() {
+    try {
+      if (!window.claude || !window.claude.use) return;
+      db = await window.claude.use('db');
+      if (!db) { fallback(); return; }
+      mode = 'db';
+      db.collection('aportes').onSnapshot(function (snap) {
+        var list = [];
+        snap.docs.forEach(function (doc) {
+          var n = norm(Object.assign({}, doc.data() || {}, { id: doc.id }));
+          if (n) list.push(n);
+        });
+        items = list; sortItems(); loading = false; render();
+      }, function () { fallback(); });
+    } catch (e) { fallback(); }
+  }
+
+  // Una app instalada puede quedar abierta varios días: al volver, se actualiza el día de hoy.
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) return;
+    var t = todayKey();
+    if (t === lastToday) return;
+    var d = $('f-date');
+    if (!d.value || d.value === lastToday) d.value = t;
+    d.max = t; lastToday = t;
+    renderTotals();
+  });
+
+  if (!loading) loadLocal();
+  resetForm();
+  render();
+  connect();
+
+  if (!window.claude && 'serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+    window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+  }
+})();
+</script>
+
+</body>
+</html>
