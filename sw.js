@@ -1,5 +1,5 @@
 // Service worker mínimo: deja la app disponible sin conexión.
-const CACHE = 'mesadas-v4';
+const CACHE = 'mesadas-v5';
 const ASSETS = [
   './',
   'index.html',
