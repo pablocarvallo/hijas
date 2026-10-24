@@ -20,6 +20,12 @@ Ejemplo:
 | $11.000 | Emi | Almuerzo | Emi: $11.000 |
 | $5.000 | Emi | Helados | Emi: $16.000 |
 
+## Panel Casa
+
+Al final de la app está la tarjeta «Panel Casa». Con «Pegar código» (el código se copia en Panel Casa → Conexiones), la app publica en el buzón privado de GitHub los totales de Piti y Emi, lo del mes y los tres últimos aportes, en el hito «Mesadas · panel». Así se ve en Panel Casa. Se publica cada vez que cambia algo; «Desconectar» deja de publicar y vacía el hito.
+
+El módulo es el mismo en todas las apps conectadas y se copia desde el repositorio casa con `python3 herramientas/conectar-apps.py`.
+
 ## Instalar en el iPhone
 
 1. La app se publica con GitHub Pages en `https://pablocarvallo.github.io/hijas/`.
