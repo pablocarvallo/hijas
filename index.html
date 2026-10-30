@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Mesadas</title>
 <!--STANDALONE:START-->
 <meta name="robots" content="noindex, nofollow">
@@ -42,6 +42,8 @@
 .pc-err { margin: 0; padding: 10px 12px; border-radius: 14px; background: var(--ds-neg-soft); color: var(--ds-neg); font-size: 15px; font-weight: 600; }
 .pc-err[hidden] { display: none; }
 /*PANEL:CSS:END*/
+/* Sin zoom con los dedos ni con doble toque en la app instalada: solo se permite desplazar */
+html, body, .sheet, .panel { touch-action: pan-x pan-y; }
 </style>
 <!--STANDALONE:END-->
 <style>
@@ -544,6 +546,13 @@ body { font-size: 17px; line-height: 1.38; }
 .amount-wrap input[type="text"] { border-radius: 18px; }
 
 /*DS:LAYER:END*/
+
+/* Borrar todos los aportes */
+.hist .clear-all { margin-top: 8px; }
+.hist .clear-all.armed { color: var(--ds-surface); }
+.toast.has-act { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 6px 10px 6px 20px; }
+.toast-act { min-height: 36px; padding: 0 12px; border: 0; border-radius: var(--ds-r-pill); background: rgba(255, 255, 255, 0.16); color: #fff; font-size: 15px; font-weight: 700; }
+.toast-act:active { background: rgba(255, 255, 255, 0.28); }
 </style>
 </head>
 <body>
@@ -768,6 +777,7 @@ var PanelCasa = (function () {
   var shown = PAGE;
   var bumpWho = null;
   var lastToday = '';
+  var clearArmed = false, clearTimer = 0;
 
   /* ---------- Fechas y formatos ---------- */
   function pad(n) { return (n < 10 ? '0' : '') + n; }
@@ -825,10 +835,25 @@ var PanelCasa = (function () {
     return true;
   }
 
-  function toast(msg) {
-    toastEl.textContent = msg; toastEl.hidden = false;
-    clearTimeout(toast.t); toast.t = setTimeout(function () { toastEl.hidden = true; }, 3200);
+  // Aviso flotante; con «act» muestra además un botón (por ejemplo, Deshacer) y dura más.
+  function toast(msg, act) {
+    toastEl.textContent = msg;
+    toastEl.classList.toggle('has-act', !!act);
+    toast.act = act || null;
+    if (act) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'toast-act'; b.textContent = act.label;
+      toastEl.appendChild(b);
+    }
+    toastEl.hidden = false;
+    clearTimeout(toast.t); toast.t = setTimeout(function () { toastEl.hidden = true; toast.act = null; }, act ? 8000 : 3200);
   }
+  toastEl.addEventListener('click', function (ev) {
+    if (!ev.target.closest('.toast-act') || !toast.act) return;
+    var fn = toast.act.fn;
+    toast.act = null; toastEl.hidden = true; clearTimeout(toast.t);
+    fn();
+  });
 
   /* ---------- Cálculos ---------- */
   function totals() {
@@ -912,6 +937,10 @@ var PanelCasa = (function () {
       });
       if (open) h += '</ul>';
       if (list.length > shown) h += '<button type="button" class="btn ghost block" data-more="1">Ver aportes anteriores</button>';
+    }
+    if (!loading && items.length) {
+      h += '<button type="button" class="btn danger block clear-all' + (clearArmed ? ' armed' : '') + '" data-clear="1">' +
+        (clearArmed ? 'Toca de nuevo para borrar' : 'Borrar todos los aportes') + '</button>';
     }
     historyEl.innerHTML = h + '</div>';
   }
@@ -999,7 +1028,37 @@ var PanelCasa = (function () {
     if (b.hasAttribute('data-filter')) { filter = b.getAttribute('data-filter'); shown = PAGE; renderHistory(); }
     else if (b.hasAttribute('data-more')) { shown += PAGE; renderHistory(); }
     else if (b.hasAttribute('data-edit')) openSheet(b.getAttribute('data-edit'));
+    else if (b.hasAttribute('data-clear')) clearAll();
   });
+
+  /* ---------- Borrar todos los aportes ---------- */
+  function disarmClear() { clearTimeout(clearTimer); if (clearArmed) { clearArmed = false; renderHistory(); } }
+
+  async function clearAll() {
+    if (busy || loading || !items.length) return;
+    // Primer toque: pide confirmación; se desarma solo después de unos segundos.
+    if (!clearArmed) {
+      clearArmed = true; renderHistory();
+      toast(plural(items.length, 'Se borrará el único aporte registrado', 'Se borrarán los ' + items.length + ' aportes de Piti y Emi'));
+      clearTimeout(clearTimer); clearTimer = setTimeout(disarmClear, 5000);
+      return;
+    }
+    clearTimeout(clearTimer); clearArmed = false;
+    var saved = items.slice(), n = saved.length;
+    busy = true;
+    var ok = await commit([], saved.map(function (r) { return r.id; }));
+    busy = false;
+    if (!ok) { renderHistory(); return; }
+    resultEl.hidden = true; filter = 'all'; shown = PAGE; renderHistory();
+    toast(plural(n, 'Se borró 1 aporte', 'Se borraron ' + n + ' aportes'), { label: 'Deshacer', fn: async function () {
+      if (busy) return;
+      busy = true;
+      var back = saved.filter(function (r) { return !find(r.id); });
+      var ok2 = await commit(back, []);
+      busy = false;
+      if (ok2) toast(plural(n, 'Aporte recuperado', 'Aportes recuperados'));
+    } });
+  }
 
   /* ---------- Hoja para editar o eliminar ---------- */
   function openSheet(id) {
@@ -1140,6 +1199,14 @@ var PanelCasa = (function () {
 
   if (!window.claude && 'serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
     window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+  }
+
+  // Sin zoom con los dedos: Safari en iOS no siempre respeta user-scalable=no, así que se anulan sus gestos de pellizco.
+  if (!window.claude) {
+    ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (type) {
+      document.addEventListener(type, function (e) { e.preventDefault(); }, { passive: false });
+    });
+    document.addEventListener('touchmove', function (e) { if (e.touches && e.touches.length > 1) e.preventDefault(); }, { passive: false });
   }
 /*PANEL:APP:START*/
   // Panel Casa: totales de cada una, lo del mes y los tres últimos aportes

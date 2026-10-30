@@ -10,6 +10,8 @@ App personal para registrar los aportes en dinero (mesadas) para Piti y Emi. Cad
 - **Historial**: lista de aportes por mes, con el total acumulado después de cada uno. Se puede filtrar por persona, y cada aporte se puede editar o eliminar.
 - **Asuntos frecuentes**: los asuntos más usados aparecen como botones para no tener que escribirlos.
 - **Respaldo**: copia todos los aportes como texto y los restaura desde ahí (los datos viven solo en el dispositivo).
+- **Borrar todo**: al final del historial, «Borrar todos los aportes» deja la app en cero. Pide un segundo toque para confirmar y, justo después, ofrece «Deshacer» durante unos segundos.
+- **Sin zoom**: en el iPhone no se puede agrandar la pantalla pellizcando ni con doble toque.
 
 Ejemplo:
 
